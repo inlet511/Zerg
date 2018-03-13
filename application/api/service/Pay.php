@@ -44,8 +44,15 @@ class Pay
 
     }
 
+    //下预订单
     private function makeWxPreOrder()
     {
+        //openid
+        $openid = Token::getCurrentTokenVar('openid');
+        if(!$openid)
+        {
+            throw new TokenException();
+        }
 
     }
 
