@@ -64,7 +64,7 @@ class Pay
         $wxOrderData->SetTotal_fee($totalPrice*100);//微信是以分为单位
         $wxOrderData->SetBody('零食商贩');
         $wxOrderData->SetOpenid($openid);
-        $wxOrderData->SetNotify_url('http://www.baidu.com');//用于接受支付回调的url
+        $wxOrderData->SetNotify_url(config('secure.pay_back_url'));//用于接受支付回调的url
         return $this->getPaySignature($wxOrderData);
     }
 

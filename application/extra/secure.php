@@ -6,5 +6,6 @@
  * Time: 15:37
  */
 return [
-    'token_salt'=>'HIOWENMFKLADJFKALJQikadfqwio10239'
+    'token_salt'=>'HIOWENMFKLADJFKALJQikadfqwio10239',
+    'pay_back_url'=>'http://z.cn/api/v1/pay/notify'
 ];
