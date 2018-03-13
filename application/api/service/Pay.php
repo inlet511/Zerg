@@ -14,6 +14,11 @@ use app\lib\enum\OrderStatusEnum;
 use app\lib\exception\OrderException;
 use app\lib\exception\TokenException;
 use think\Exception;
+use think\Loader;
+use think\Log;
+
+//
+Loader::import('WxPay.WxPay',EXTEND_PATH,'.Api.php');
 
 class Pay
 {
@@ -41,11 +46,11 @@ class Pay
         {
             return $status;
         }
-
+        return $this->makeWxPreOrder($status['orderPrice']);
     }
 
     //下预订单
-    private function makeWxPreOrder()
+    private function makeWxPreOrder($totalPrice)
     {
         //openid
         $openid = Token::getCurrentTokenVar('openid');
@@ -53,8 +58,57 @@ class Pay
         {
             throw new TokenException();
         }
+        $wxOrderData = new \WxPayUnifiedOrder();
+        $wxOrderData->SetOut_trade_no($this->orderNo);
+        $wxOrderData->SetTrade_type('JSAPI');
+        $wxOrderData->SetTotal_fee($totalPrice*100);//微信是以分为单位
+        $wxOrderData->SetBody('零食商贩');
+        $wxOrderData->SetOpenid($openid);
+        $wxOrderData->SetNotify_url('http://www.baidu.com');//用于接受支付回调的url
+        return $this->getPaySignature($wxOrderData);
+    }
+
+    //发送预订单请求
+    private function getPaySignature($wxOrderData)
+    {
+        $wxOrder = \wxPayApi::unifiedOrder($wxOrderData);
+        if($wxOrder['return_code']!='SUCCESS'||
+            $wxOrder['result_code']!='SUCCESS')
+        {
+            Log::record($wxOrder,'error');
+            Log::record('获取预支付订单失败','error');
+        }
+
+        //prepay_id 可以向用户推送消息,要保存到订单表中
+        $this->recordPreOrder($wxOrder);
+        $signature = $this->sign($wxOrder);
+        return $signature;
 
     }
+    private function sign($wxOrder){
+        $jsApiPayData = new \WxPayJsApiPay();
+        $jsApiPayData->SetAppid(config('wx.app_id'));
+        $jsApiPayData->SetTimeStamp((string)time());
+        $rand = md5(time().mt_rand(0,1000));
+        $jsApiPayData->SetNonceStr($rand);
+        $jsApiPayData->SetPackage('prepay_id='.$wxOrder['prepay_id']);
+        $jsApiPayData->SetSignType('md5');
+        $sign = $jsApiPayData->MakeSign();
+
+        $rawValues = $jsApiPayData->GetValues();
+        $rawValues['paySign'] = $sign;
+
+        //去掉appId，因为appId没有必要返回给用户
+        unset($rawValues['appId']);
+        return $rawValues;
+    }
+
+    private function recordPreOrder($wxOrder)
+    {
+        OrderModel::where('id','=',$this->orderID)
+                ->update(['prepay_id'=>$wxOrder['prepay_id']]);
+    }
+
 
     private function validateOrder()
     {

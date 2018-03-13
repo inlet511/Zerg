@@ -15,6 +15,7 @@ use app\api\model\UserAddress;
 use app\lib\exception\OrderException;
 use app\lib\exception\UserException;
 use app\api\model\Order as OrderService;
+use think\Db;
 use think\Exception;
 
 class Order
