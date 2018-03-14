@@ -17,8 +17,13 @@ class Banner{
 
         $banner = BannerModel::getBannerById($id);
 
-        if($banner->isEmpty()){
-            throw new BannerMissException();
+        if(!$banner){
+            throw new BannerMissException(
+                [
+                    'msg'=>'请求的banner不存在',
+                    'errorCode'=>40000
+                ]
+            );
         }
         return $banner;
     }
