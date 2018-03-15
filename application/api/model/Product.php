@@ -11,7 +11,7 @@ namespace app\api\model;
 
 class Product extends BaseModel
 {
-    protected $hidden = ['id','pivot','create_time','delete_time','update_time','from'];
+    protected $hidden = ['pivot','create_time','delete_time','update_time','from'];
 
 
     //读取器
