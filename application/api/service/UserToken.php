@@ -4,6 +4,7 @@
  * User: Administrator
  * Date: 2018/3/9
  * Time: 16:07
+ * 用于用户的Token，另外还有cms的Token
  */
 
 namespace app\api\service;
